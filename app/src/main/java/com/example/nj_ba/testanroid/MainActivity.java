@@ -8,7 +8,7 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
-    protected Button btHomepage,btdial,btcall;
+    protected Button btHomepage,btdial,btcall,btsns;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_DIAL,Uri.parse("tel:0428297670"));
+                startActivity(intent);
             }
         });
         btcall = (Button) findViewById(R.id.btcall);
@@ -35,6 +36,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_CALL,Uri.parse("tel:0428297670"));
+            }
+        });
+        btsns = (Button) findViewById(R.id.btsns);
+        btsns.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_SENDTO,Uri.parse("smsto: 0428297670"));
+                intent.putExtra("sms_body","Mokwon University");
+                startActivity(intent);
             }
         });
     }
