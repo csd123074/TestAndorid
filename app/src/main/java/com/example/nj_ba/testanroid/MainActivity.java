@@ -8,8 +8,7 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
-    protected Button btHomepage;
-    protected Button btdial;
+    protected Button btHomepage,btdial,btcall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +27,14 @@ public class MainActivity extends AppCompatActivity {
         btdial.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_DIAL,Uri.parse("tel:042-829-7147"));
+                Intent intent = new Intent(Intent.ACTION_DIAL,Uri.parse("tel:0428297670"));
+            }
+        });
+        btcall = (Button) findViewById(R.id.btcall);
+        btcall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_CALL,Uri.parse("tel:0428297670"));
             }
         });
     }
