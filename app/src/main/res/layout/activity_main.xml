@@ -11,72 +11,83 @@
         android:id="@+id/btHomepage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:text="HomePage"
-        tools:layout_editor_absoluteX="16dp"
+        app:layout_constraintStart_toStartOf="parent"
         tools:layout_editor_absoluteY="25dp" />
 
     <Button
         android:id="@+id/btdial"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="40dp"
         android:text="Dial"
-        tools:layout_editor_absoluteX="148dp"
+        app:layout_constraintEnd_toStartOf="@+id/btcall"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/btHomepage"
         tools:layout_editor_absoluteY="25dp" />
 
     <Button
         android:id="@+id/btcall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
         android:text="btcall"
-        tools:layout_editor_absoluteX="280dp"
+        app:layout_constraintEnd_toEndOf="parent"
         tools:layout_editor_absoluteY="25dp" />
 
     <Button
         android:id="@+id/btsns"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="20dp"
         android:text="SMS"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="95dp" />
-
-    <Button
-        android:id="@+id/btsns2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SMS"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="95dp" />
-
-    <Button
-        android:id="@+id/btsns"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SMS"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="95dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btHomepage"
+        app:layout_constraintVertical_bias="0.005"
+        tools:layout_editor_absoluteX="16dp" />
 
     <Button
         android:id="@+id/btmap"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="20dp"
         android:text="Googlemap"
-        tools:layout_editor_absoluteX="147dp"
-        tools:layout_editor_absoluteY="95dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btsns"
+        app:layout_constraintTop_toBottomOf="@+id/btdial"
+        app:layout_constraintVertical_bias="0.005" />
 
     <Button
         android:id="@+id/btrecog"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="20dp"
         android:text="Recog"
-        tools:layout_editor_absoluteX="278dp"
-        tools:layout_editor_absoluteY="95dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.777"
+        app:layout_constraintStart_toEndOf="@+id/btmap"
+        app:layout_constraintTop_toBottomOf="@+id/btcall"
+        app:layout_constraintVertical_bias="0.005" />
 
     <TextView
         android:id="@+id/tvRecog"
         android:layout_width="197dp"
         android:layout_height="42dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
         android:text="Voice recognize"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="193dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btmap"
+        app:layout_constraintVertical_bias="0.119"
+        tools:layout_editor_absoluteX="16dp" />
 
 </android.support.constraint.ConstraintLayout>
