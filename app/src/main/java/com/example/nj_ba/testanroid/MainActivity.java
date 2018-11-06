@@ -2,7 +2,9 @@ package com.example.nj_ba.testanroid;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.ContactsContract;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
@@ -11,17 +13,18 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener { //implements : 인터페이스 구현
-    protected Button btHomepage, btdial, btcall, btsns, btmap, btrecog, btTts, btEcho;
+    protected Button btHomepage, btdial, btcall, btsns, btmap, btrecog, btTts, btEcho, btContact;
     protected TextView tvRecog;
     protected EditText etTts;
     protected TextToSpeech tts;
     protected TextView etDelay;
-    private static final int CODE_RECOG = 1234, CODE_ECHO = 1235; //비밀번호를 가지고 특정 앱을 갖고 위해 설정
+    private static final int CODE_RECOG = 1234, CODE_ECHO = 1235, CODE_CONTACT = 1236; //비밀번호를 가지고 특정 앱을 갖고 위해 설정
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +105,15 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 voiceRecog(CODE_ECHO);
             }
         });
-
+        btContact = (Button) findViewById(R.id.btContact);
+        btContact.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_PICK); //Action_pick을 사용해서 우리가 직접 열람하는게 아니라 사용자가 허락했기 때문에 permission 필요 없음
+                intent.setData(ContactsContract.CommonDataKinds.Phone.CONTENT_URI); //ContactsContract 연락처 정보를 관장하는 계약자
+                startActivityForResult(intent, CODE_CONTACT);
+            }
+        });
     }
 
     private void voiceRecog(int nCode) { //음성인식을 하는 인텐트를 이용해 음성인식
@@ -152,6 +163,16 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     e.printStackTrace();
                 }
                 speakStr(sRecog);
+            } else if (requestCode == CODE_CONTACT) {
+                String[] sFilter = {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME, ContactsContract.CommonDataKinds.Phone.NUMBER}; //이름과 전화번호를 찾아 들어가는 기능
+               Cursor cursor =  getContentResolver().query(data.getData(),sFilter,null,null,null);
+               if(cursor != null){
+                   cursor.moveToFirst();
+                   String sName = cursor.getString(0);
+                   String sPhoneNum = cursor.getString(1);
+                   cursor.close();
+                   Toast.makeText(this,sName + "=" + sPhoneNum,Toast.LENGTH_LONG).show();
+               }
             }
         }
 
