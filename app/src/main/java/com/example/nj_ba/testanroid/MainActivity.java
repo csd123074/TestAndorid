@@ -278,13 +278,13 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     @Override
     protected void onResume() { //Onstart 다음에 실행 되는것(켜질때)
         super.onResume();
-        TelephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);//LISTEN_SIGNAL_STRENGTHS : 핸드폰에 있는 안테나 개수
-        //메세지가 날아올때 처리랄 callback 함수를 써줘야함
+        telephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);//LISTEN_SIGNAL_STRENGTHS : 핸드폰에 있는 안테나 개수
+        //메세지가 날아올때 처리를 callback 함수를 써줘야함
     }
 
     @Override
     protected void onPause() {//사용자에게 보여지다가 background로 들어간 상태(꺼질때)
-        TelephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_NONE); //LISTEN_NONE을 이용해 종료
+        telephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_NONE); //LISTEN_NONE을 이용해 종료
         super.onPause();
     }
 }
