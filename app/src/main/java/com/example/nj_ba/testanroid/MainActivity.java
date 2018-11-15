@@ -12,6 +12,9 @@ import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telecom.TelecomManager;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,14 +26,16 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {//implements : 인터페이스 구현
-    protected Button btHomepage, btDial, btCall, btSms, btMap, btRecog, btTts,
+    protected Button btHomepage, btDial, btCall, btSms, btMap, btRecog, btTts, btToastPS,
             btEcho, btContact, btBitmap;
     protected TextView tvRecog;
     protected EditText etTts, etDelay;
     protected TextToSpeech tts;
     public ImageView ivBitmap;
     private static final int CODE_RECOG = 1215, CODE_ECHO = 1227, CODE_CONTACT = 1529;//비밀번호를 가지고 특정 앱을 갖고 위해 설정
-    protected String sBitmapUrl ="https://sites.google.com/site/yongheuicho/_/rsrc/1313446792839/config/customLogo.gif?revision=1"; //Bitmap을 가져올 주소
+    protected String sBitmapUrl = "https://sites.google.com/site/yongheuicho/_/rsrc/1313446792839/config/customLogo.gif?revision=1"; //Bitmap을 가져올 주소
+    protected TelephonyManager telephonyManager;
+    protected CommStateListener commStateListener;
 
     //Intent : 일종의 메시지 객체, 이것을 사용해 다른 앱 구성 요소로부터 작업을 요청할 수 있음
     //명시적 인텐트 : 시작할 구성 요소를 이름으로 지정합니다(완전히 정규화된 클래스 이름). 명시적 인텐트는 일반적으로 본인의 앱 안에서 구성 요소를 시작할 때 씁니다.
@@ -113,21 +118,73 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_PICK); //Action_pick을 사용해서 우리가 직접 열람하는게 아니라 사용자가 허락했기 때문에 permission 필요 없음
-                intent.setData(ContactsContract.CommonDataKinds.Phone.CONTENT_URI);//ContactsContract 연락처 정보를 관장하는 계약자
                 startActivityForResult(intent, CODE_CONTACT);
+                intent.setData(ContactsContract.CommonDataKinds.Phone.CONTENT_URI);//ContactsContract 연락처 정보를 관장하는 계약자
             }
         });
-        ivBitmap = (ImageView)findViewById(R.id.ivBitmap);
-        btBitmap = (Button)findViewById(R.id.btBitmap);
+        ivBitmap = (ImageView) findViewById(R.id.ivBitmap);
+        btBitmap = (Button) findViewById(R.id.btBitmap);
         btBitmap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(new BitmapRunnable(ivBitmap,sBitmapUrl)).start(); // 여기서 만든 Thread는 내가 만들었기 때문에 반드시 new 를 해줘야함. 남이 만든 객체는 레퍼런스를 받아와야 하며 그 경우 new 사용 x
+                new Thread(new BitmapRunnable(ivBitmap, sBitmapUrl)).start(); // 여기서 만든 Thread는 내가 만들었기 때문에 반드시 new 를 해줘야함. 남이 만든 객체는 레퍼런스를 받아와야 하며 그 경우 new 사용 x
                 //runnable 자체는 실행되는 코드는 아닌데 Thread에 들어가야 실행 되는것
                 //여기에 Thread를 하나 더 만들었으니까 총 2개가 되는거임. 기본에 있던거 1개 지금 만든거 1개. Thread는 원하는 만큼 만들 수 있음
             }
         });
+
+
+        telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE); //getSystemService : 운영체제에 있는 여러 서비스를 가져옴
+        //전화를 담당하는 운영체제가 서비스를 돌리고, 그것을 관리 하는 매지너가 TelephonyManager, 이를 이용해 정보를 얻을 수 있음
+        commStateListener = new CommStateListener(); // 위는 레퍼런스를 받아서 옴. 하지만 이거는 상속받은 값이므로 내가 관리를 할거라 new를 통해 생성해서 commStateListener에 집어넣음
+
+        btToastPS = (Button) findViewById(R.id.btToastPS);
+        btToastPS.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toastPhoneState();
+            }
+        });
     }
+
+    private void toastPhoneState() {
+        int nPhoneType = telephonyManager.getPhoneType();
+        int nNetworkType = telephonyManager.getNetworkType();
+        String sPhoneType;
+        switch (nPhoneType) {
+            case TelephonyManager.PHONE_TYPE_GSM:
+                sPhoneType = "Voice: GSM";
+                break;
+            case TelephonyManager.PHONE_TYPE_CDMA:
+                sPhoneType = "Voice: CDMA";
+                break;
+            case TelephonyManager.PHONE_TYPE_SIP:
+                sPhoneType = "Voice: SIP";
+                break;
+            default:
+                sPhoneType = "Voice: 코드 번호 = " + nPhoneType;
+        }
+        String sNetworkType;
+        switch (nNetworkType) {
+            case TelephonyManager.NETWORK_TYPE_CDMA:
+                sNetworkType = "Data: 2G CDMA";
+                break;
+            case TelephonyManager.NETWORK_TYPE_UMTS:
+                sNetworkType = "Data: 3G UMTS";
+                break;
+            case TelephonyManager.NETWORK_TYPE_HSPAP:
+                sNetworkType = "Data: 3G HSPA+";
+                break;
+            case TelephonyManager.NETWORK_TYPE_LTE:
+                sNetworkType = "Data: 4G LTE";
+                break;
+            default:
+                sNetworkType = "Data: 코드 번호 = " + nNetworkType;
+        }
+        Toast.makeText(this, sPhoneType, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, sNetworkType, Toast.LENGTH_SHORT).show();
+    }
+
 
     private void voiceRecog(int nCode) { //음성인식을 하는 인텐트를 이용해 음성인식
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -216,5 +273,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             tts.setPitch(1.0f);//기본 피치
             tts.setSpeechRate(1.0f);// 속도
         }
+    }
+
+    @Override
+    protected void onResume() { //Onstart 다음에 실행 되는것(켜질때)
+        super.onResume();
+        TelephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);//LISTEN_SIGNAL_STRENGTHS : 핸드폰에 있는 안테나 개수
+        //메세지가 날아올때 처리랄 callback 함수를 써줘야함
+    }
+
+    @Override
+    protected void onPause() {//사용자에게 보여지다가 background로 들어간 상태(꺼질때)
+        TelephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_NONE); //LISTEN_NONE을 이용해 종료
+        super.onPause();
     }
 }
