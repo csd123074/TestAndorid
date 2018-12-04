@@ -1,7 +1,6 @@
 package com.example.nj_ba.testanroid;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,12 +11,13 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.telecom.TelecomManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.View;
@@ -32,30 +32,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {//implements : 인터페이스 구현
-    protected Button btHomepage, btDial, btCall, btSms, btMap, btRecog, btTts, btToastPS,
-            btEcho, btContact, btBitmap, btRecogcall, btService, btLocation;
+public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
+    protected Button btHomepage, btDial, btCall, btSms, btMap, btRecog, btTts,
+            btEcho, btContact, btBitmap, btToastPs, btService, btLocation, btRecogcall;
     protected TextView tvRecog;
     protected EditText etTts, etDelay;
-    protected TextToSpeech tts;
     public ImageView ivBitmap;
-    private static final int CODE_RECOG = 1215, CODE_ECHO = 1227, CODE_CONTACT = 1529, CODE_CONTACT_CALL = 1403, CODE_CONTACT2 = 1530, CODE_CONTACT3 = 1531;//비밀번호를 가지고 특정 앱을 갖고 위해 설정
+    protected TextToSpeech tts;
+    private static final int CODE_RECOG = 1215, CODE_ECHO = 1227, CODE_CONTACT = 1529, CODE_CONTACT_CALL = 1403, CODE_CONTACT2 = 1530,CODE_CONTACT3 = 1531;//비밀번호를 가지고 특정 앱을 갖고 위해 설정
     protected boolean bService = false;
-    protected String sBitmapUrl = "https://sites.google.com/site/yongheuicho/_/rsrc/1313446792839/config/customLogo.gif?revision=1", sCallName; //Bitmap을 가져올 주소
+    protected String sBitmapUrl = "https://sites.google.com/site/yongheuicho/_/rsrc/1313446792839/config/customLogo.gif",sCallName; ;
     protected TelephonyManager telephonyManager;
     protected CommStateListener commStateListener;
     protected LocationManager locationManager;
     protected MyLocationListener myLocationListener;
     protected SensorManager sensorManager;
     protected Sensor sensorAccel;
-    protected MySensorListner mySensorListner;
+    protected MySensorListener mySensorListener;
+    protected double latitude, longitude, altitude;
+    protected String name = "";
 
-    //Intent : 일종의 메시지 객체, 이것을 사용해 다른 앱 구성 요소로부터 작업을 요청할 수 있음
-    //명시적 인텐트 : 시작할 구성 요소를 이름으로 지정합니다(완전히 정규화된 클래스 이름). 명시적 인텐트는 일반적으로 본인의 앱 안에서 구성 요소를 시작할 때 씁니다.
-    // 시작하고자 하는 액티비티 또는 서비스의 클래스 이름을 알고 있기 때문입니다. 예를 들어, 사용자 작업에 응답하여 새 액티비티를 시작하거나
-    // 백그라운드에서 파일을 다운로드하기 위해 서비스를 시작하는 것 등이 여기에 해당됩니다.
-    //암시적 인텐트 : 특정 구성 요소의 이름을 대지 않지만, 그 대신 수행할 일반적일 작업을 선언하여 또 다른 앱의 구성 요소가 이를 처리할 수 있도록 해줍니다.
-    // 예를 들어, 사용자에게 지도에 있는 한 위치를 표시해주고자 하는 경우, 암시적 인텐트를 사용하여 다른, 해당 기능을 갖춘 앱이 지정된 위치를 지도에 표시하도록 요청할 수 있습니다.
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:0428297670"));
                 startActivity(intent);
-
             }
         });
         btSms = (Button) findViewById(R.id.btSms);
@@ -98,11 +94,10 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         btMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:36.321609,127.337957?z=20")); //z= 맵을 얼마나 확대할것인가
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:36.321609,127.337957?z=15"));
                 startActivity(intent);
             }
         });
-
         tvRecog = (TextView) findViewById(R.id.tvRecog);
         btRecog = (Button) findViewById(R.id.btRecog);
         btRecog.setOnClickListener(new View.OnClickListener() {
@@ -111,7 +106,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 voiceRecog(CODE_RECOG);
             }
         });
-
         etTts = (EditText) findViewById(R.id.etTts);
         btTts = (Button) findViewById(R.id.btTts);
         btTts.setOnClickListener(new View.OnClickListener() {
@@ -120,7 +114,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 speakStr(etTts.getText().toString());
             }
         });
-
         tts = new TextToSpeech(this, this);
         btEcho = (Button) findViewById(R.id.btEcho);
         btEcho.setOnClickListener(new View.OnClickListener() {
@@ -129,15 +122,14 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 voiceRecog(CODE_ECHO);
             }
         });
-
         etDelay = (EditText) findViewById(R.id.etDelay);
         btContact = (Button) findViewById(R.id.btContact);
         btContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_PICK); //Action_pick을 사용해서 우리가 직접 열람하는게 아니라 사용자가 허락했기 때문에 permission 필요 없음
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setData(ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
                 startActivityForResult(intent, CODE_CONTACT);
-                intent.setData(ContactsContract.CommonDataKinds.Phone.CONTENT_URI);//ContactsContract 연락처 정보를 관장하는 계약자
             }
         });
         ivBitmap = (ImageView) findViewById(R.id.ivBitmap);
@@ -145,19 +137,20 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         btBitmap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(new BitmapRunnable(ivBitmap, sBitmapUrl)).start(); // 여기서 만든 Thread는 내가 만들었기 때문에 반드시 new 를 해줘야함. 남이 만든 객체는 레퍼런스를 받아와야 하며 그 경우 new 사용 x
-                //runnable 자체는 실행되는 코드는 아닌데 Thread에 들어가야 실행 되는것
-                //여기에 Thread를 하나 더 만들었으니까 총 2개가 되는거임. 기본에 있던거 1개 지금 만든거 1개. Thread는 원하는 만큼 만들 수 있음
+                new Thread(new BitmapRunnable(ivBitmap, sBitmapUrl)).start();
             }
         });
-        btRecogcall = (Button) findViewById(R.id.btRecogcall);
-        btRecogcall.setOnClickListener(new View.OnClickListener() {
+
+        telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+        commStateListener = new CommStateListener(telephonyManager, this);
+        btToastPs = (Button) findViewById(R.id.btToastPs);
+        btToastPs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                voiceRecog(CODE_CONTACT_CALL);
+                toastPhoneState();
             }
-
         });
+
         btService = (Button) findViewById(R.id.btService);
         btService.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -168,9 +161,10 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         myLocationListener = new MyLocationListener();
-        long minTime = 1000; //in ms
+        long minTime = 1000; // in ms
         float minDistance = 0;
         //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTime, minDistance, myLocationListener);
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -186,33 +180,30 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         btLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //speakLocation();
+                showLocation();
+                speakLocation(latitude, longitude);
+            }
+        });
+
+        btRecogcall = (Button) findViewById(R.id.btRecogcall);
+        btRecogcall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                voiceRecog(CODE_CONTACT_CALL);
             }
         });
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         sensorAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mySensorListner = new MySensorListner(this);
+        mySensorListener = new MySensorListener(this);
         if (sensorAccel != null) {
-            sensorManager.registerListener(mySensorListner, sensorAccel, SensorManager.SENSOR_DELAY_NORMAL); // 쓰기 좋은 주기(NORMAL)
+            sensorManager.registerListener(mySensorListener, sensorAccel, SensorManager.SENSOR_DELAY_NORMAL);
         }
-
-        telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE); //getSystemService : 운영체제에 있는 여러 서비스를 가져옴
-        //전화를 담당하는 운영체제가 서비스를 돌리고, 그것을 관리 하는 매지너가 TelephonyManager, 이를 이용해 정보를 얻을 수 있음
-        commStateListener = new CommStateListener(telephonyManager, this); // 위는 레퍼런스를 받아서 옴. 하지만 이거는 상속받은 값이므로 내가 관리를 할거라 new를 통해 생성해서 commStateListener에 집어넣음
-        //이 activity는 context를 상속받았기 때문에 this로 해도 됨
-        btToastPS = (Button) findViewById(R.id.btToastPs);
-        btToastPS.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toastPhoneState();
-            }
-        });
     }
 
     private void speakLocation(double latitude, double longitude) {
         Geocoder geocoder;
-        geocoder = new Geocoder(this, Locale.KOREAN);
+        geocoder = new Geocoder(getApplicationContext(), Locale.KOREAN);
         List<Address> lsAddress;
         try {
             lsAddress = geocoder.getFromLocation(latitude, longitude, 1);
@@ -221,34 +212,35 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             String state = lsAddress.get(0).getAdminArea();
             String country = lsAddress.get(0).getCountryName();
             String postalCode = lsAddress.get(0).getPostalCode();
-            String knownName = lsAddress.get(0).getFeatureName(); //건물정보
-            speakStr("현재 위치는" +country + city + knownName +"입니다");
+            String knownName = lsAddress.get(0).getFeatureName();
+            speakStr("현재 있는 나라는" + country + "현재있는 도시는" + city + "현재있는 건물은" + knownName + "입니다.");
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:" + latitude + "," + longitude + "?z=15"));    //"geo:s36.321609,127.337957?z=20"
+            startActivity(intent);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-
     private void showLocation() {
-        double latitude, longitude, altitude;
+
         latitude = myLocationListener.latitude;
         longitude = myLocationListener.longitude;
         altitude = myLocationListener.altitude;
-
-        /*Toast.makeText(this, "Latitude : " + latitude + "Longitude : " + longitude + "Altitude : " + altitude, Toast.LENGTH_SHORT).show();*/
+        Toast.makeText(this, "Latitude: " + latitude + ", Longitude = " + longitude + ", Altitude  " + altitude, Toast.LENGTH_SHORT).show();
     }
-
 
     private void updateService() {
         Intent intent = new Intent(this, PhoneCallService.class);
         if (bService) {
             stopService(intent);
             bService = false;
-            btService.setText("Start SVC");
+            btService.setText("Start Svc");
         } else {
             startService(intent);
             bService = true;
-            btService.setText("Stop SVC");
+            btService.setText("Stop Svc");
         }
 
     }
@@ -293,22 +285,17 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         Toast.makeText(this, "RSSI = " + nRssi, Toast.LENGTH_SHORT).show();
     }
 
-
-    private void voiceRecog(int nCode) { //음성인식을 하는 인텐트를 이용해 음성인식
+    private void voiceRecog(int nCode) {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        //사용자의 음성을 인식하기위한 액티비티를 시작하도록 전달하는 상수 값으로, 이 상수값을 인자로
-        //가지는 인텐트 객체를 이용하면 음성 인식 액티비티를 실행할 수 있음
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        // free-form 기반의 음성 인식 모델을 사용
-        //어떤 언어모델을 사용할 것인가 free_form:현재 내정보를 가지고 복원(말 소리만 듣고) web_form:웹의 정보까지 다양하게 오류 확인
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREAN);// 언어 인식 코드
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Please speak.");// 내가 쓰고 싶은 마이크, 사용자한테 주는 마이크
-        startActivityForResult(intent, nCode);//CODE_RECOG라는 비밀번호를 가지고 특정 액티비티를 가져옴(앱 탈취를 막기 위해)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.KOREAN);
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Please speak.");
+        startActivityForResult(intent, nCode);
     }
 
     private void speakStr(String str) {
-        tts.speak(str, TextToSpeech.QUEUE_FLUSH, null, null);//진행중인 음성 출력을 끊고 이번 TTS의 음성 출력을 한다
-        while (tts.isSpeaking()) {//tts가 소리를 만들고 있는지, 아닌지 확인하는 함수
+        tts.speak(str, TextToSpeech.QUEUE_FLUSH, null, null);
+        while (tts.isSpeaking()) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -319,8 +306,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private String getPhoneNumFromName(String sName) {
         String sPhoneNum = "";
-        Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_FILTER_URI, Uri.encode(sName));//Uri : 안드로이드에서 쓰는 여러 자원들을 하나의 체계로 합친것
-        String[] arProjection = new String[]{ContactsContract.Contacts._ID};//ID를 이용해 정보 검색
+        Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_FILTER_URI, Uri.encode(sName));
+        String[] arProjection = new String[]{ContactsContract.Contacts._ID};
         Cursor cursor = getContentResolver().query(uri, arProjection, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
             String sId = cursor.getString(0);
@@ -337,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         return sPhoneNum;
     }
 
-    @SuppressLint("MissingPermission")
+
     @Override //framework 제공하는 기능을 가져와서 내가 필요한 기능을 넣겠다
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {//메세지가 사용자의 브로드캐스트가 됨
         super.onActivityResult(requestCode, resultCode, data);//super : 부모함수 호출
@@ -404,24 +391,23 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
 
     @Override
-    public void onInit(int status) {//소리로 전환할 텍스트
+    public void onInit(int status) {
         if (status == TextToSpeech.SUCCESS) {
             tts.setLanguage(Locale.KOREAN);
-            tts.setPitch(1.0f);//기본 피치
-            tts.setSpeechRate(1.0f);// 속도
+            tts.setPitch(1.0f);
+            tts.setSpeechRate(1.0f);
         }
     }
 
     @Override
-    protected void onResume() { //Onstart 다음에 실행 되는것(켜질때)
+    protected void onResume() {
         super.onResume();
-        telephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);//LISTEN_SIGNAL_STRENGTHS : 핸드폰에 있는 안테나 개수
-        //메세지가 날아올때 처리를 callback 함수를 써줘야함
+        telephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
     }
 
     @Override
-    protected void onPause() {//사용자에게 보여지다가 background로 들어간 상태(꺼질때)
-        telephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_NONE); //LISTEN_NONE을 이용해 종료
+    protected void onPause() {
+        telephonyManager.listen(commStateListener, PhoneStateListener.LISTEN_NONE);
         super.onPause();
     }
 
@@ -431,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             Intent intent = new Intent(this, PhoneCallService.class);
             stopService(intent);
         }
-        sensorManager.unregisterListener(mySensorListner);
+        sensorManager.unregisterListener(mySensorListener);
         super.onDestroy();
     }
 }

@@ -1,16 +1,17 @@
 package com.example.nj_ba.testanroid;
 
+
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.widget.Toast;
 
-public class MySensorListner implements SensorEventListener {
-    double accelX, accelY, accelZ;
+public class MySensorListener implements SensorEventListener {
+    public double accelX, accelY, accelZ;
     protected Context context;
 
-    public MySensorListner(Context context) {
+    public MySensorListener(Context context) {
         this.context = context;
     }
 
@@ -21,7 +22,7 @@ public class MySensorListner implements SensorEventListener {
             accelX = event.values[0];
             accelY = event.values[1];
             accelZ = event.values[2];
-           // Toast.makeText(context, "X: " + accelX + ", Y: " + accelY + ", Z: " + accelZ, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, "X: " + accelX + ", Y: " + accelY + ", Z: " + accelZ, Toast.LENGTH_SHORT).show();
         }
     }
 
